@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var login_1 = require("./login");
-var serve_1 = require("./serve");
-var setup_1 = require("./setup");
-var tokenStore_1 = require("./tokenStore");
-var command = process.argv[2];
+const login_1 = require("./login");
+const serve_1 = require("./serve");
+const setup_1 = require("./setup");
+const tokenStore_1 = require("./tokenStore");
+const command = process.argv[2];
 switch (command) {
     case 'login':
         (0, login_1.login)();
@@ -20,7 +20,7 @@ switch (command) {
         (0, setup_1.vscodeSetup)();
         break;
     case 'status':
-        var tokens = (0, tokenStore_1.getTokens)();
+        const tokens = (0, tokenStore_1.getTokens)();
         console.log(tokens ? '✅ Logged in' : '❌ Not logged in. Run: keep login');
         break;
     default:
