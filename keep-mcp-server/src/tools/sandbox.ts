@@ -7,13 +7,13 @@ export function registerSandboxTools(server: McpServer, auth: MCPAuth) {
 	server.tool(
 		"sandbox_generate",
 		{
-			type: z.enum(["note", "label", "collaborator", "reminder"]).describe("Type of data to generate"),
-			count: z.number().describe("Number of items to generate").optional(),
+			numNotes: z.number().describe("number of items to generate"),
+			useRandomData: z.boolean().describe("generate notes with random pinned").optional(),
 		},
 		async (generateData) => {
-			const generatedData = await auth.callBackend("sandbox/generate", "post", generateData);
+			const generatedData = await auth.callBackend("generateSandbox", "post", generateData);
 			return {
-				content: [{ type: "text", text: `Generated data: ${JSON.stringify(generatedData)}` }]
+				content: [{ type: "text", text: JSON.stringify(generatedData, null, 2) }]
 			};
 		}
 	);
@@ -22,12 +22,11 @@ export function registerSandboxTools(server: McpServer, auth: MCPAuth) {
 	server.tool(
 		"sandbox_delete",
 		{
-			type: z.enum(["note", "label", "collaborator", "reminder"]).describe("Type of data to delete"),
 		},
-		async ({ type }) => {
-			await auth.callBackend("sandbox/delete", "delete", { type });
+		async () => {
+			await auth.callBackend("deleteSandbox", "delete");
 			return {
-				content: [{ type: "text", text: `Deleted all sandbox data of type: ${type}` }]
+				content: [{ type: "text", text: JSON.stringify({ message: "All sandbox data deleted" }, null, 2) }]
 			};
 		}
 	);

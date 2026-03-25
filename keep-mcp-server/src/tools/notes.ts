@@ -25,21 +25,9 @@ export function registerNoteTools(server: McpServer, auth: MCPAuth) {
 			await auth.callBackend("addnotes", "post", note);
 
 			return {
-				content: [{ type: "text", text: `Note created with ID: ${note.id}` }],
+				content: [{ type: "text", text: JSON.stringify(note, null, 2) }],
 			};
 		});
-
-	// notes_list
-	server.tool(
-		"notes_list",
-		{},
-		async () => {
-			const notes = await auth.callBackend("notes", "get");
-			return {
-				content: [{ type: "text", text: `Notes: ${JSON.stringify(notes)}` }]
-			};
-		}
-	);
 
 	// notes_update
 	server.tool(
@@ -49,63 +37,28 @@ export function registerNoteTools(server: McpServer, auth: MCPAuth) {
 			title: z.string().describe("Title of the note").optional(),
 			description: z.string().describe("Description of the note").optional(),
 			pinned: z.boolean().describe("Whether the note is pinned").optional(),
-			category: z.string().describe("Category of the note").optional(),
+			isArchived: z.boolean().optional().describe("Whether the note is archived"),
+			imageUrl: z.string().optional().describe("Image URL for the note"),
+			isDeleted: z.boolean().optional().describe("Whether the note is deleted"),
+			bgColor: z.string().optional().describe("Background color of the note"),
 		},
 		async (noteData) => {
 			const { id, ...updateData } = noteData;
-			await auth.callBackend(`notes/${id}`, "put", updateData);
+			const note = await auth.callBackend(`UpdateNotes/${id}`, "put", updateData);
 			return {
-				content: [{ type: "text", text: `Note with ID ${id} updated` }]
+				content: [{ type: "text", text: JSON.stringify(note, null, 2) }]
 			};
 		}
 	);
 
-	// notes_delete_by_id
+	// notes_list
 	server.tool(
-		"notes_delete_by_id",
-		{
-			id: z.number().describe("Unique identifier for the note"),
-		},
-		async ({ id }) => {
-			await auth.callBackend(`notes/${id}`, "delete");
-			return {
-				content: [{ type: "text", text: `Note with ID ${id} deleted` }]
-			};
-		}
-	);
-
-	// notes_empty_bin
-	server.tool(
-		"notes_empty_bin",
+		"notes_list",
 		{},
 		async () => {
-			await auth.callBackend("notes/emptybin", "delete");
+			const notes = await auth.callBackend("notes", "get");
 			return {
-				content: [{ type: "text", text: `Bin emptied` }]
-			};
-		}
-	);
-
-	// notes_list_deleted
-	server.tool(
-		"notes_list_deleted",
-		{},
-		async () => {
-			const deletedNotes = await auth.callBackend("notes/deleted", "get");
-			return {
-				content: [{ type: "text", text: `Deleted notes: ${JSON.stringify(deletedNotes)}` }]
-			};
-		}
-	);
-
-	// notes_list_archived
-	server.tool(
-		"notes_list_archived",
-		{},
-		async () => {
-			const archivedNotes = await auth.callBackend("notes/archived", "get");
-			return {
-				content: [{ type: "text", text: `Archived notes: ${JSON.stringify(archivedNotes)}` }]
+				content: [{ type: "text", text: JSON.stringify(notes, null, 2) }]
 			};
 		}
 	);
@@ -119,8 +72,59 @@ export function registerNoteTools(server: McpServer, auth: MCPAuth) {
 		async ({ id }) => {
 			const note = await auth.callBackend(`notes/${id}`, "get");
 			return {
-				content: [{ type: "text", text: `Note details: ${JSON.stringify(note)}` }]
+				content: [{ type: "text", text:  JSON.stringify(note, null, 2) }]
 			};
 		}
 	);
+
+	// notes_list_archived
+	server.tool(
+		"notes_list_archived",
+		{},
+		async () => {
+			const archivedNotes = await auth.callBackend("archivedNotes", "get");
+			return {
+				content: [{ type: "text", text: JSON.stringify(archivedNotes, null, 2) }]
+			};
+		}
+	);
+
+	// notes_list_deleted
+	server.tool(
+		"notes_list_deleted",
+		{},
+		async () => {
+			const deletedNotes = await auth.callBackend("deletedNotes", "get");
+			return {
+				content: [{ type: "text", text: JSON.stringify(deletedNotes, null, 2) }]
+			};
+		}
+	);
+
+	// notes_delete_by_id
+	server.tool(
+		"notes_delete_by_id",
+		{
+			id: z.number().describe("Unique identifier for the note"),
+		},
+		async ({ id }) => {
+			await auth.callBackend(`deleteNotes/${id}`, "delete");
+			return {
+				content: [{ type: "text", text: JSON.stringify({ id, message: "Note deleted" }, null, 2) }]
+			};
+		}
+	);
+
+	// notes_empty_bin
+	server.tool(
+		"notes_empty_bin",
+		{},
+		async () => {
+			await auth.callBackend("deleteNotes", "delete");
+			return {
+				content: [{ type: "text", text: JSON.stringify({ message: "Bin emptied" }, null, 2) }]
+			};
+		}
+	);
+
 }

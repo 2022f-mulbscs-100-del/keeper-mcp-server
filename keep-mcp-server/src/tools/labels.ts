@@ -7,20 +7,19 @@ export function registerLabelTools(server: McpServer, auth: MCPAuth) {
 	server.tool(
 		"labels_create",
 		{
-			name: z.string().describe("Name of the label"),
-			color: z.string().describe("Color of the label in hex code").optional(),
+			categoryName: z.string().describe("Name of the label"),
+			colorCode: z.string().describe("Color of the label in hex code").optional(),
 		},
 		async (labelData) => {
 			const label = {
-				id: (Date.now() + Math.floor(Math.random() * 1000)) % 100000,
-				name: labelData.name,
-				color: labelData.color,
+				categoryName: labelData.categoryName,
+				colorCode: labelData.colorCode,
 			};
 
-			await auth.callBackend("addlabels", "post", label);
+		const response =	await auth.callBackend("createLabelCategories", "post", label);
 
 			return {
-				content: [{ type: "text", text: `Label created with ID: ${label.id}` }],
+				content: [{ type: "text", text: JSON.stringify(response, null, 2) }],
 			};
 		}
 	);
@@ -30,14 +29,17 @@ export function registerLabelTools(server: McpServer, auth: MCPAuth) {
 		"labels_update",
 		{
 			id: z.number().describe("Unique identifier for the label"),
-			name: z.string().describe("Name of the label").optional(),
-			color: z.string().describe("Color of the label in hex code").optional(),
+			categoryName: z.string().describe("Name of the label").optional(),
+			colorCode: z.string().describe("Color of the label in hex code").optional(),
 		},
 		async (labelData) => {
 			const { id, ...updateData } = labelData;
-			await auth.callBackend(`labels/${id}`, "put", updateData);
+			const response = await auth.callBackend(`updateLabelCategories`, "put", {
+				id,
+				...updateData,
+			});
 			return {
-				content: [{ type: "text", text: `Label with ID ${id} updated` }]
+				content: [{ type: "text", text: JSON.stringify(response, null, 2) }]
 			};
 		}
 	);
@@ -49,9 +51,9 @@ export function registerLabelTools(server: McpServer, auth: MCPAuth) {
 			id: z.number().describe("Unique identifier for the label"),
 		},
 		async ({ id }) => {
-			await auth.callBackend(`labels/${id}`, "delete");
+			await auth.callBackend(`deleteLabelCategories/${id}`, "delete");
 			return {
-				content: [{ type: "text", text: `Label with ID ${id} deleted` }]
+				content: [{ type: "text", text: JSON.stringify({ id, message: "Label deleted" }, null, 2) }]
 			};
 		}
 	);
@@ -60,24 +62,24 @@ export function registerLabelTools(server: McpServer, auth: MCPAuth) {
 	server.tool(
 		"labels_get_by_title",
 		{
-			name: z.string().describe("Name of the label to fetch"),
+			title: z.string().describe("Name of the label to fetch"),
 		},
-		async ({ name }) => {
-			const label = await auth.callBackend(`labels/name/${name}`, "get");
+		async ({ title }) => {
+			const label = await auth.callBackend(`getLabelCategoriesByCategoryName/${title}`, "get");
 			return {
-				content: [{ type: "text", text: `Label details: ${JSON.stringify(label)}` }]
+				content: [{ type: "text", text: JSON.stringify(label, null, 2) }]
 			};
 		}
-	);
+	); 
 
 	// labels_list
 	server.tool(
 		"labels_list",
 		{},
 		async () => {
-			const labels = await auth.callBackend("labels", "get");
+			const labels = await auth.callBackend("getLabelCategories", "get");
 			return {
-				content: [{ type: "text", text: `Labels: ${JSON.stringify(labels)}` }]
+				content: [{ type: "text", text:  JSON.stringify(labels, null, 2) }]
 			};
 		}
 	);
