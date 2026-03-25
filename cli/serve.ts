@@ -1,7 +1,9 @@
 import { spawn } from 'child_process';
 import { getTokens } from './tokenStore';
 
-const REMOTE_MCP_URL = 'http://localhost:8787/mcp';
+const REMOTE_MCP_URL =
+  process.env.KEEP_MCP_SERVER_URL ??
+  'https://keep-mcp-server.2022f-mulbscs-100.workers.dev/mcp';
 
 export function serve() {
   const tokens = getTokens();
@@ -30,12 +32,12 @@ export function serve() {
     }
   );
 
-  child.on('error', (err) => {
+  child.on('error', (err: { message: string }) => {
     process.stderr.write(`keep-mcp: Failed to start proxy: ${err.message}\n`);
     process.exit(1);
   });
 
-  child.on('exit', (code) => {
+  child.on('exit', (code: number | null) => {
     process.exit(code ?? 0);
   });
 }

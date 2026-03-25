@@ -1,16 +1,22 @@
-import * as express from 'express';
-import { type Request, type Response } from 'express';
+import express, { type Request, type Response } from 'express';
 import open from 'open';
 import { saveTokens } from './tokenStore';
+
 
 export async function login() {
   const app = express();
   const port = 3000;
 
+  const frontendBaseUrl = process.env.KEEP_FRONTEND_URL ?? 'https://keeper04.netlify.app';
+  
+  const callbackBaseUrl =
+    process.env.KEEP_LOGIN_CALLBACK_BASE_URL ?? `http://localhost:${port}`;
+
   const server = app.listen(port, () => {
     console.log('Opening browser for login...');
-    // Replace with your actual frontend URL
-    void open(`http://localhost:5173/login?redirect=http://localhost:${port}/callback`);
+    const loginUrl = new URL('/login', frontendBaseUrl);
+    loginUrl.searchParams.set('redirect', `${callbackBaseUrl}/callback`);
+    void open(loginUrl.toString());
   });
 
   app.get('/callback', (req: Request, res: Response) => {
